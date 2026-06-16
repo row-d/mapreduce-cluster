@@ -1,7 +1,9 @@
 #include <cstdint>
 
-namespace MapReduce
+namespace MapReducePICalculator
 {
+    constexpr uint16_t MAGIC_NUMBER = 0x4142;
+
     enum FrameOpcode : uint8_t
     {
         REGISTER = 0x01,
@@ -14,9 +16,9 @@ namespace MapReduce
 #pragma pack(push, 1)
     struct Frame
     {
-        uint16_t magic;    // 2 bytes
-        FrameOpcode opcode;    // 1 bytes
-        uint8_t length[3]; // 3 bytes
+        uint16_t magic;     // 2 bytes
+        FrameOpcode opcode; // 1 bytes
+        uint8_t length[3];  // 3 bytes
     };
 #pragma pack(pop)
 

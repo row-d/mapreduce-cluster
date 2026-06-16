@@ -1,6 +1,6 @@
 #include "tcp.hpp"
 
-namespace MapReduce
+namespace MapReducePICalculator
 {
     class TcpServer
     {
@@ -38,4 +38,4 @@ namespace MapReduce
         tcp::acceptor _acceptor;
     };
 
-} // namespace MapReduce
+} // namespace MapReducePICalculator

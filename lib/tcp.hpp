@@ -4,10 +4,14 @@
 #include <vector>
 #include <iostream>
 #include <asio.hpp>
-// #include <arpa/inet.h> // Para ntohs/htons (si estás en Linux/macOS)
+#include <thread>
+
+#ifdef __unix__
+#include <arpa/inet.h> // Para ntohs/htons (Linux/macOS)
+#endif
 #include "frame.hpp"
 
-namespace MapReduce
+namespace MapReducePICalculator
 {
     using tcp = asio::ip::tcp;
 
@@ -52,14 +56,14 @@ namespace MapReduce
         {
             if (!error)
             {
-                // 1. Validar el Magic Number (ej: 0x4142)
-                if (ntohs(header_in_.magic) != 0x4142)
+                // 1. Validar el Magic Number
+                if (ntohs(header_in_.magic) != MAGIC_NUMBER)
                 {
                     std::cerr << "[Error] Magic number inválido. Desconectando." << std::endl;
                     return; // Detiene el ciclo, destruyendo la conexión de forma segura
                 }
 
-                // 2. Obtener tamaño del payload usando tu función helper
+                // 2. Obtener tamaño del payload
                 uint32_t payload_len = get_uint24(header_in_.length);
 
                 if (payload_len > 0)
@@ -83,7 +87,7 @@ namespace MapReduce
             }
         }
 
-        void read_payload()
+        inline void read_payload()
         {
             // Forzamos a leer los bytes exactos que se especificaron en la cabecera
             asio::async_read(socket_,
@@ -114,7 +118,10 @@ namespace MapReduce
             switch (header_in_.opcode)
             {
             case FrameOpcode::REGISTER:
-                // guardar conexión en una lista de Workers
+
+                // std::lock_guard<std::mutex> lock(workers_mutex_);
+                // uint32_t id = next_worker_id_++;
+                // workers_[id] = shared_from_this();
                 break;
 
             case FrameOpcode::MAP_RESULT:
@@ -123,13 +130,13 @@ namespace MapReduce
                     uint64_t puntos_dentro;
                     std::memcpy(&puntos_dentro, payload_in_.data(), sizeof(uint64_t));
 
-                    // Ojo: Si el Worker mandó el uint64_t en Big Endian,
-                    // debes hacerle un reverse/swap de bytes aquí según tu arquitectura.
+                    // # TODO: Si el Worker mandó el uint64_t en Big Endian,
+                    // hacer un reverse/swap de bytes aquí según arquitectura.
                 }
                 break;
 
             default:
-                // std::cout << "-> Opcode desconocido." << std::endl;
+                std::cerr << "-> Opcode desconocido." << std::endl;
                 break;
             }
         }
@@ -137,5 +144,8 @@ namespace MapReduce
         tcp::socket socket_;
         Frame header_in_;
         std::vector<uint8_t> payload_in_;
+        std::unordered_map<uint32_t, pointer> workers_;
+        std::mutex workers_mutex_;
+        uint32_t next_worker_id_ = 1;
     };
-} // namespace MapReduce
+} // namespace MapReducePICalculator
