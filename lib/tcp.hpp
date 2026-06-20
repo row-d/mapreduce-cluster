@@ -44,9 +44,9 @@ namespace MapReducePICalculator
 
         void read_header()
         {
-            // Lectura de 6 bytes del Frame (Cabecera)
+            // Lectura de 6 bytes del InputFrame (Cabecera)
             asio::async_read(socket_,
-                             asio::buffer(&header_in_, sizeof(Frame)),
+                             asio::buffer(&header_in_, sizeof(InputFrame)),
                              std::bind(&TcpConnection::handle_read_header, shared_from_this(),
                                        asio::placeholders::error,
                                        asio::placeholders::bytes_transferred));
@@ -76,7 +76,7 @@ namespace MapReducePICalculator
                 }
                 else
                 {
-                    // Es un mensaje sin cuerpo (Ej: Heartbeat), lo procesamos directo
+                    // Es un mensaje sin cuerpo
                     process_packet();
                     read_header(); // Volvemos a escuchar la siguiente cabecera
                 }
@@ -117,22 +117,12 @@ namespace MapReducePICalculator
         {
             switch (header_in_.opcode)
             {
-            case FrameOpcode::REGISTER:
-
-                // std::lock_guard<std::mutex> lock(workers_mutex_);
-                // uint32_t id = next_worker_id_++;
-                // workers_[id] = shared_from_this();
+            case InputFrameOpcode::REGISTER:
+                register_worker();
                 break;
 
-            case FrameOpcode::MAP_RESULT:
-                if (payload_in_.size() == sizeof(uint64_t))
-                {
-                    uint64_t puntos_dentro;
-                    std::memcpy(&puntos_dentro, payload_in_.data(), sizeof(uint64_t));
-
-                    // # TODO: Si el Worker mandó el uint64_t en Big Endian,
-                    // hacer un reverse/swap de bytes aquí según arquitectura.
-                }
+            case InputFrameOpcode::MAP_RESULT:
+                recv_reducer_result();
                 break;
 
             default:
@@ -141,8 +131,27 @@ namespace MapReducePICalculator
             }
         }
 
+        inline void recv_reducer_result()
+        {
+            if (payload_in_.size() == sizeof(uint64_t))
+            {
+                uint64_t puntos_dentro;
+                std::memcpy(&puntos_dentro, payload_in_.data(), sizeof(uint64_t));
+                // ntohl
+                // # TODO: Si el Worker mandó el uint64_t en Big Endian,
+                // hacer un reverse/swap de bytes aquí según arquitectura.
+            }
+        }
+
+        inline void register_worker()
+        {
+            std::lock_guard<std::mutex> lock(workers_mutex_);
+            uint32_t id = next_worker_id_++;
+            workers_[id] = shared_from_this();
+        }
+
         tcp::socket socket_;
-        Frame header_in_;
+        InputFrame header_in_;
         std::vector<uint8_t> payload_in_;
         std::unordered_map<uint32_t, pointer> workers_;
         std::mutex workers_mutex_;
