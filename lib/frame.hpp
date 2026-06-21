@@ -1,16 +1,20 @@
+#pragma once
 #include <cstdint>
 
 namespace MapReducePICalculator
 {
     constexpr uint16_t MAGIC_NUMBER = 0x4142;
+    constexpr uint16_t PROTOCOL_PORT = 1337;
 
     enum InputFrameOpcode : uint8_t
     {
         REGISTER = 0x01,
+        REGISTER_ACK,
         ASSIGN_MAP,
         MAP_RESULT,
+        REDUCE_RESULT,
         HEARTBEAT,
-        ERROR
+        OPCODE_ERROR
     };
 
 #pragma pack(push, 1)
@@ -38,50 +42,26 @@ namespace MapReducePICalculator
 
     inline uint64_t get_uint64(const uint8_t src[8])
     {
-        return (static_cast<uint64_t>(src[0]) << 64) |
-               (static_cast<uint64_t>(src[1]) << 56) |
-               (static_cast<uint64_t>(src[2]) << 48) |
-               (static_cast<uint64_t>(src[3]) << 40) |
-               (static_cast<uint64_t>(src[4]) << 32) |
-               (static_cast<uint64_t>(src[5]) << 24) |
-               (static_cast<uint64_t>(src[6]) << 16) |
-               (static_cast<uint64_t>(src[7]) << 8);
+        return (static_cast<uint64_t>(src[0]) << 56) |
+               (static_cast<uint64_t>(src[1]) << 48) |
+               (static_cast<uint64_t>(src[2]) << 40) |
+               (static_cast<uint64_t>(src[3]) << 32) |
+               (static_cast<uint64_t>(src[4]) << 24) |
+               (static_cast<uint64_t>(src[5]) << 16) |
+               (static_cast<uint64_t>(src[6]) << 8) |
+               (static_cast<uint64_t>(src[7]));
     }
 
-    inline uint64_t set_uint64(uint8_t dest[8], uint64_t value)
+    inline void set_uint64(uint8_t dest[8], uint64_t value)
     {
-        dest[0] = (value >> 64) & 0xFF;
-        dest[1] = (value >> 56) & 0xFF;
-        dest[2] = (value >> 48) & 0xFF;
-        dest[3] = (value >> 40) & 0xFF;
-        dest[4] = (value >> 32) & 0xFF;
-        dest[5] = (value >> 24) & 0xFF;
-        dest[6] = (value >> 16) & 0xFF;
+        dest[0] = (value >> 56) & 0xFF;
+        dest[1] = (value >> 48) & 0xFF;
+        dest[2] = (value >> 40) & 0xFF;
+        dest[3] = (value >> 32) & 0xFF;
+        dest[4] = (value >> 24) & 0xFF;
+        dest[5] = (value >> 16) & 0xFF;
+        dest[6] = (value >> 8) & 0xFF;
         dest[7] = value & 0xFF;
-    }
-
-    template <typename T>
-    inline void get_type(const T *src, size_t bytes)
-    {
-        T result;
-        size_t it = bytes;
-        for (size_t i = 0; i < bytes && it > -1; i++)
-        {
-            result |= (static_cast<uint64_t>(*(dest + i)) << it);
-            it = it - 8;
-        }
-        return result;
-    }
-
-    template <typename T, typename R>
-    inline R set_type(T *dest, size_t bytes, R value)
-    {
-        size_t it = bytes;
-        for (size_t i = 0; i < bytes && it > -1; i++)
-        {
-            *(dest + i) = (value >> it) & 0xFF;
-            it = it - 8;
-        }
     }
 
 }

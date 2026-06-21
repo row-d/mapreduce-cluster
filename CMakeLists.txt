@@ -1,16 +1,27 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.25)
 
-project(MapReduceSocket)
+project(MapReduceSocket LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# Dependencies
 find_package(asio CONFIG REQUIRED)
 
-file(GLOB_RECURSE FUENTES
-    "src/main.cpp"
-    "lib/*.cpp"
-)
+if(WIN32)
+    set(EXTRA_LIBS ws2_32 mswsock)
+elseif(APPLE)
+    set(EXTRA_LIBS "")
+else()
+    set(EXTRA_LIBS pthread)
+endif()
 
-add_executable(MapReduceSocket ${FUENTES})
+# Build
+add_executable(mapreduce-server src/server_main.cpp)
+target_link_libraries(mapreduce-server PRIVATE asio::asio ${EXTRA_LIBS})
+target_include_directories(mapreduce-server PRIVATE lib src)
 
-target_link_libraries(MapReduceSocket PRIVATE asio::asio ws2_32)
-target_include_directories(MapReduceSocket PRIVATE lib)
+add_executable(mapreduce-client src/client_main.cpp)
+target_link_libraries(mapreduce-client PRIVATE asio::asio ${EXTRA_LIBS})
+target_include_directories(mapreduce-client PRIVATE lib src)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

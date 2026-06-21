@@ -1,0 +1,43 @@
+# syntax=docker/dockerfile:1
+#
+# Cross-compile a Windows x64 desde Linux usando MinGW-w64
+
+ARG BASE_IMAGE=debian:bookworm-slim
+FROM ${BASE_IMAGE} AS builder
+
+ARG VCPKG_TRIPLET=x64-mingw-dynamic
+ARG CC=x86_64-w64-mingw32-gcc
+ARG CXX=x86_64-w64-mingw32-g++
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    cmake \
+    ninja-build \
+    git \
+    curl \
+    ca-certificates \
+    pkg-config \
+    gcc-mingw-w64-x86-64 \
+    g++-mingw-w64-x86-64 \
+    && rm -rf /var/lib/apt/lists/*
+
+ARG VCPKG_COMMIT=2024.12.16
+RUN git clone --depth 1 https://github.com/microsoft/vcpkg.git /opt/vcpkg \
+    && cd /opt/vcpkg \
+    && git checkout ${VCPKG_COMMIT} \
+    && ./bootstrap-vcpkg.sh -disableMetrics
+
+ENV VCPKG_ROOT=/opt/vcpkg
+ENV PATH="${VCPKG_ROOT}:${PATH}"
+
+WORKDIR /app
+COPY . .
+
+RUN cmake --preset=docker \
+        -DVCPKG_TARGET_TRIPLET=${VCPKG_TRIPLET} \
+        -DCMAKE_C_COMPILER=${CC} \
+        -DCMAKE_CXX_COMPILER=${CXX} \
+    && cmake --build build/docker --config Release
+
+FROM scratch AS export
+COPY --from=builder /app/build/docker/mapreduce-server.exe /
+COPY --from=builder /app/build/docker/mapreduce-client.exe /

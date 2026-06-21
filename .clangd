@@ -1,3 +1,0 @@
-If:
-  PathMatch:
-    [.src/*.hpp, .lib/*.hpp, vcpkg_installed/x64-mingw-dynamic/include/asio.hpp]
