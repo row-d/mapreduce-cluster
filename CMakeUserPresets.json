@@ -1,12 +1,24 @@
 {
-    "version": 2,
-    "configurePresets": [
-        {
-            "name": "default",
-            "inherits": "vcpkg",
-            "environment": {
-                "VCPKG_ROOT": "C:\\Binarios\\vcpkg"
-            }
-        }
-    ]
+  "version": 2,
+  "configurePresets": [
+    {
+      "name": "Windows",
+      "inherits": "vcpkg",
+      "environment": {
+        "VCPKG_ROOT": "C:\\Binarios\\vcpkg"
+      }
+    },
+    {
+      "name": "WSL",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_TOOLCHAIN_FILE": "/mnt/c/Binarios/vcpkg/scripts/buildsystems/vcpkg.cmake"
+      },
+      "environment": {
+        "VCPKG_ROOT": "/mnt/c/Binarios/vcpkg"
+      }
+    }
+  ]
 }

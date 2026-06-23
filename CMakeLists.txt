@@ -1,9 +1,10 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.19)
 
 project(MapReduceSocket LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Dependencies
 find_package(asio CONFIG REQUIRED)
 
@@ -24,4 +25,4 @@ add_executable(mapreduce-client src/client_main.cpp)
 target_link_libraries(mapreduce-client PRIVATE asio::asio ${EXTRA_LIBS})
 target_include_directories(mapreduce-client PRIVATE lib src)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+

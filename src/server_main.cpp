@@ -1,6 +1,7 @@
 #include "server.hpp"
 #include <iostream>
 #include <cstdlib>
+#include <numbers>
 
 int main(int argc, char **argv)
 {
@@ -26,7 +27,7 @@ int main(int argc, char **argv)
 
     double pi = server.pi_estimate();
     std::cout << "\n*** Pi ≈ " << pi << " ***\n";
-    std::cout << "Error: " << std::abs(pi - 3.14159265358979323846) << "\n";
+    std::cout << "Error: " << std::abs(pi - std::numbers::pi) << "\n";
 
     return 0;
 }

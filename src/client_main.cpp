@@ -15,15 +15,21 @@ int main(int argc, char **argv)
     asio::io_context ctx;
     MapReducePICalculator::TcpClient client(ctx, host, MapReducePICalculator::PROTOCOL_PORT);
 
-    auto [inside, total] = client.run();
+    try {
+        auto [inside, total] = client.run();
 
-    if (total == 0)
-    {
-        std::cerr << "No task available (all done?)\n";
+        if (total == 0)
+        {
+            std::cerr << "No task available (all done?)\n";
+            return 1;
+        }
+
+        std::cout << "Result: " << inside << "/" << total
+                  << " (" << (100.0 * inside / total) << "%)\n";
+        return 0;
+
+    } catch (asio::system_error &e) {
+		std::cerr << "[client] Error: " << e.what() << "\n";
         return 1;
     }
-
-    std::cout << "Result: " << inside << "/" << total
-              << " (" << (100.0 * inside / total) << "%)\n";
-    return 0;
 }
