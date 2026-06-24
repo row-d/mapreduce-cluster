@@ -8,9 +8,7 @@ int main(int argc, char **argv)
     std::string host = "127.0.0.1";
     if (argc >= 2) host = argv[1];
 
-    std::cout << "=== MapReduce Worker ===\n"
-              << "Connecting to " << host << ":"
-              << MapReducePICalculator::PROTOCOL_PORT << "\n\n";
+    std::cout << "=== MapReduce Worker ===\n";
 
     asio::io_context ctx;
     MapReducePICalculator::TcpClient client(ctx, host, MapReducePICalculator::PROTOCOL_PORT);

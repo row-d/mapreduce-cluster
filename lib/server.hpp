@@ -32,7 +32,8 @@ namespace MapReducePICalculator
         TcpServer(asio::io_context &io_ctx, uint32_t num_workers, uint64_t points_per_worker)
             : _io_ctx(io_ctx),
               _acceptor(io_ctx, tcp::endpoint(tcp::v4(), PROTOCOL_PORT)),
-              _job{}
+              _job{},
+              _connected_workers(0)
         {
             _job.total_tasks = num_workers;
             std::mt19937_64 rng(42);
@@ -90,6 +91,7 @@ namespace MapReducePICalculator
         JobState _job;
         std::vector<std::pair<uint64_t, uint64_t>> _tasks;
         std::atomic<uint32_t> _next_task{0};
+        std::atomic<uint32_t> _connected_workers;
         std::condition_variable _cv;
     };
 
@@ -247,7 +249,11 @@ namespace MapReducePICalculator
                                [this, conn](const std::error_code &ec)
                                {
                                    if (!ec)
+                                   {
+                                       auto count = ++_connected_workers;
+                                       std::cout << "[server] Worker connected (" << count << " total)" << std::endl;
                                        conn->start();
+                                   }
                                    start_accept();
                                });
     }

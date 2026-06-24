@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <numbers>
+#include <thread>
 
 int main(int argc, char **argv)
 {
@@ -23,7 +24,12 @@ int main(int argc, char **argv)
     asio::io_context ctx;
     MapReducePICalculator::TcpServer server(ctx, num_workers, points_per_worker);
 
+    std::thread io_thread([&ctx]() { ctx.run(); });
+
     server.wait_until_done();
+
+    ctx.stop();
+    io_thread.join();
 
     double pi = server.pi_estimate();
     std::cout << "\n*** Pi ≈ " << pi << " ***\n";

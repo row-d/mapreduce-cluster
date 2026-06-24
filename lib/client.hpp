@@ -41,9 +41,11 @@ namespace MapReducePICalculator
     private:
         void connect()
         {
+            std::cout << "[client] Connecting to " << _host << ":" << _port << std::endl;
             tcp::resolver resolver(_socket.get_executor());
             auto endpoints = resolver.resolve(_host, std::to_string(_port));
             asio::connect(_socket, endpoints);
+            std::cout << "[client] Connected" << std::endl;
         }
 
         void send_register()
